@@ -1,0 +1,10 @@
+<!-- -*- xml -*- -->
+<launch>
+  <param name="/camera_prefix" type="string" value="/" />
+	
+  <!-- % rosrun demo_pioneer demo_pioneer_visual_servo_pioneer_node --> 
+  <node respawn="true" pkg="demo_pioneer" type="demo_pioneer_visual_servo_pioneer_node" name="demo_pioneer_visual_servo_pioneer_node" output="screen">
+     <remap from="/object_position" to="/visp_auto_tracker/object_position" />
+     <remap from="/vs/pioneer/cmd_vel" to="/cmd_vel" />
+  </node>
+</launch>

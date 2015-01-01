@@ -15,7 +15,7 @@
 #include <visp/vpFeatureDepth.h>
 #include <visp/vpFeaturePoint.h>
 #include <visp/vpHomogeneousMatrix.h>
-#include <visp/vpPioneer.h>
+#include "vpTb.h"
 #include <visp/vpServo.h>
 #include <visp/vpVelocityTwistMatrix.h>
 
@@ -71,7 +71,7 @@ VS::VS(int argc, char**argv)
   subStatus_ = nh_.subscribe("/visp_auto_tracker/status", 1000, &VS::statusCallback, this);
   pubTwist_  = nh_.advertise<geometry_msgs::Twist>("vs/pioneer/cmd_vel", 1000);
   // Subscribe to the topic Camera info in order to receive the camera paramenter. The callback function will be called only one time.
-  sub_cam_info = nh_.subscribe("/camera_info", 1000,&VS::CameraInfoCb,this);
+  sub_cam_info = nh_.subscribe("/camera/rgb/camera_info", 1000,&VS::CameraInfoCb,this);
 
   depth = 0.4;
   lambda = 1.;
@@ -99,13 +99,14 @@ void VS::init_vs()
 
 
   lambda_adapt.initStandard(3, 0.2, 40);
+  //lambda_adapt.initStandard(2, 0.2, 40);
 
 
   task.setServo(vpServo::EYEINHAND_L_cVe_eJe) ;
   task.setInteractionMatrixType(vpServo::DESIRED, vpServo::PSEUDO_INVERSE) ;
   task.setLambda(lambda_adapt) ;
 
-  vpPioneer robot; // Pas top ! devrait etre vpRobotPioneer
+  vpTb robot; // Pas top ! devrait etre vpRobotPioneer
   vpVelocityTwistMatrix cVe = robot.get_cVe();
   vpMatrix eJe = robot.get_eJe();
   task.set_cVe( cVe );
@@ -191,7 +192,7 @@ void VS::poseCallback(const geometry_msgs::PoseStampedConstPtr& msg)
     // Update log(Z/Z*) feature. Since the depth Z change, we need to update the intection matrix
     s_Z.buildFrom(s_x.get_x(), s_x.get_y(), Z, log(Z/Zd)) ;
 
-    vpPioneer robot; // Pas top ! devrait etre vpRobotPioneer
+    vpTb robot; // Pas top ! devrait etre vpRobotPioneer
     vpVelocityTwistMatrix cVe = robot.get_cVe();
     vpMatrix eJe = robot.get_eJe();
     task.set_cVe( cVe );
@@ -224,7 +225,7 @@ void VS::poseCallback(const geometry_msgs::PoseStampedConstPtr& msg)
     out_cmd_vel.linear.z = 0;
     out_cmd_vel.angular.x = 0;
     out_cmd_vel.angular.y = 0;
-    out_cmd_vel.angular.z = v[1];
+    out_cmd_vel.angular.z = v[1] * 7.5;
 
     pubTwist_.publish(out_cmd_vel);
     valid_pose_prev = valid_pose;
